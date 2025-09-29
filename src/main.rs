@@ -11,6 +11,8 @@ Logitech G915 Wireless RGB Mechanical Gaming Keyboard
 */
 
 use phf::{phf_map};
+use std::env;
+use std::fs;
 // use std::io::{self, Write};
 
 // This stores each x position on the keyboard and all key ids at that position. 255 is none. 
@@ -52,13 +54,39 @@ static KEYMAP: phf::Map<usize, [usize; 8]> = phf_map! {
     42 => [133,134,135,136,255,255,255,255],
 };
 
-static SPEED: f64 = 0.25;
-static LEFT_TO_RIGHT: bool = true;
-static BLEND: f64 = 8.0; // lower = less blend, higher = more blend
-static MODULO: f64 = 48.0; // interval between matching color states. No idea why mine is 48.
 
 #[tokio::main]
 async fn main() -> OpenRgbResult<()> {
+
+    let speed: f64;
+    let left_to_right: bool;
+    let blend: f64; // lower = less blend, higher = more blend
+    let modulo: f64; // interval between matching color states. No idea why mine is 48.
+
+    let args: Vec<String> = env::args().collect();
+    if args.len() < 2 {
+        eprintln!("Usage: {} <file_path>", args[0]);
+        std::process::exit(1);
+    }
+
+    let file_path = &args[1];
+    let file_content = fs::read_to_string(file_path).expect("Failed to read the file");
+
+    let yaml_data: serde_yaml::Value = serde_yaml::from_str(&file_content)
+        .expect("Failed to parse the file content as YAML");
+
+    speed = yaml_data.get("SPEED")
+        .and_then(|v| v.as_f64())
+        .expect("Failed to retrieve or parse 'SPEED' from YAML");
+    left_to_right = yaml_data.get("LEFT_TO_RIGHT")
+        .and_then(|v| v.as_i64())
+        .expect("Failed to retrieve or parse 'LEFT_TO_RIGHT' from YAML") != 0;
+    blend = yaml_data.get("BLEND")
+        .and_then(|v| v.as_f64())
+        .expect("Failed to retrieve or parse 'BLEND' from YAML");
+    modulo = yaml_data.get("MODULO")
+        .and_then(|v| v.as_f64())
+        .expect("Failed to retrieve or parse 'MODULO' from YAML");
 
     // connect to default server at localhost
     let client = OpenRgbClient::connect().await?;
@@ -67,8 +95,8 @@ async fn main() -> OpenRgbResult<()> {
 
     let mut offset: f64 = 0.0;
     loop {
-        offset = (offset+SPEED)%MODULO;
-        draw_rainbow(&controllers, if LEFT_TO_RIGHT {MODULO-offset} else {offset}, BLEND).await?;
+        offset = (offset+speed)%modulo;
+        draw_rainbow(&controllers, if left_to_right {modulo-offset} else {offset}, blend).await?;
         tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
     }
 }
