@@ -108,15 +108,8 @@ async fn draw_rainbow(controllers: &ControllerGroup, offset: f64, blend: f64) ->
 
 fn calculate_rainbow(full_offset: f64) -> Color {
     let offset = full_offset%3.0;
-    if offset <= 1.0 {
-        return Color::new(
-            (255.0*(-(offset    ).abs()+1.0)) as u8,
-            (255.0*(-(offset-1.0).abs()+1.0)) as u8,
-            (255.0*(-(offset-2.0).abs()+1.0)) as u8,
-        )
-    }
     return Color::new(
-        (255.0*(-(offset-3.0).abs()+1.0)) as u8,
+        (255.0*( (offset-1.5).abs()-0.5)) as u8,
         (255.0*(-(offset-1.0).abs()+1.0)) as u8,
         (255.0*(-(offset-2.0).abs()+1.0)) as u8,
     )
