@@ -1,0 +1,174 @@
+0: LED: 1
+1: LED: 2
+2: LED: 3
+3: LED: 4
+4: LED: 5
+5: LED: 6
+6: LED: 7
+7: LED: 8
+8: LED: 9
+9: LED: 10
+10: LED: 11
+11: LED: 12
+12: LED: 13
+13: LED: 14
+14: LED: 15
+15: LED: 16
+16: LED: 17
+17: LED: 18
+18: LED: 19
+19: Key: G1
+20: Key: G2
+21: Key: G3
+22: Key: G4
+23: Key: G5
+24: Key: G6
+25: Key: Escape
+26: Key: `
+27: Key: Tab
+28: Key: Caps Lock
+29: Key: Left Shift
+30: Key: Left Control
+31: Key: 1
+32: Key: Q
+33: Key: A
+34: Key: Left Windows
+35: Key: F1
+36: Key: 2
+37: Key: W
+38: Key: S
+39: Key: Z
+40: Key: Left Alt
+41: Key: User
+42: Key: F2
+43: Key: 3
+44: Key: E
+45: Key: D
+46: Key: X
+47: Key: Brightness
+48: Key: F3
+49: Key: 4
+50: Key: R
+51: Key: F
+52: Key: C
+53: Key: Lock
+54: Key: F4
+55: Key: 5
+56: Key: T
+57: Key: G
+58: Key: V
+59: Key: 6
+60: Key: Y
+61: Key: H
+62: Key: B
+63: Key: Space
+64: Key: F5
+65: Key: 7
+66: Key: U
+67: Key: J
+68: Key: N
+69: Key: F6
+70: Key: 8
+71: Key: I
+72: Key: K
+73: Key: M
+74: Key: F7
+75: Key: 9
+76: Key: O
+77: Key: L
+78: Key: ,
+79: Key: F8
+80: Key: 0
+81: Key: P
+82: Key: ;
+83: Key: .
+84: Key: Right Alt
+85: Key: F9
+86: Key: -
+87: Key: [
+88: Key: '
+89: Key: /
+90: Key: Right Windows
+91: Key: F10
+92: Key: =
+93: Key: ]
+94: Key: Menu
+95: Key: F11
+96: Key: Right Shift
+97: Key: F12
+98: Key: Backspace
+99: Key: \ (ANSI)
+100: Key: Enter
+101: Key: Right Control
+102: Key: Print Screen
+103: Key: Insert
+104: Key: Delete
+105: Key: Left Arrow
+106: Key: Scroll Lock
+107: Key: Home
+108: Key: End
+109: Key: Up Arrow
+110: Key: Down Arrow
+111: Key: Pause/Break
+112: Key: Page Up
+113: Key: Page Down
+114: Key: Right Arrow
+115: Key: Media Mute
+116: Key: Media Stop
+117: Key: Num Lock
+118: Key: Number Pad 7
+119: Key: Number Pad 4
+120: Key: Number Pad 1
+121: Key: Number Pad 0
+122: Key: Media Previous
+123: Key: Number Pad /
+124: Key: Number Pad 8
+125: Key: Number Pad 5
+126: Key: Number Pad 2
+127: Key: Media Play/Pause
+128: Key: Number Pad *
+129: Key: Number Pad 9
+130: Key: Number Pad 6
+131: Key: Number Pad 3
+132: Key: Number Pad .
+133: Key: Media Next
+134: Key: Number Pad -
+135: Key: Number Pad +
+136: Key: Number Pad Enter
+
+static KEYMAP: phf::Map<usize, [usize; 6]> = phf_map! {
+    0  => [ 19, 20, 21, 22, 23, 24],
+    2  => [ 25, 26, 27, 28, 29, 30],
+    4  => [ 31, 34,  0,  0,  0,  0],
+    5  => [ 32, 33,  0,  0,  0,  0],
+    6  => [ 35, 36, 39, 40,  0,  0],
+    7  => [ 37, 38,  0,  0,  0,  0],
+    8  => [ 42, 43, 46,  0,  0,  0],
+    9  => [ 44, 45,  0,  0,  0,  0],
+    10 => [ 48, 49, 52,  0,  0,  0],
+    11 => [ 50, 51,  0,  0,  0,  0],
+    12 => [ 54, 55, 58,  0,  0,  0],
+    13 => [ 56, 57,  0,  0,  0,  0],
+    14 => [ 64, 59, 62, 63,  0,  0],
+    15 => [ 60, 61,  0,  0,  0,  0],
+    16 => [ 65, 68,  0,  0,  0,  0],
+    17 => [ 69, 66, 67,  0,  0,  0],
+    18 => [ 74, 70, 73,  0,  0,  0],
+    19 => [ 71, 72,  0,  0,  0,  0],
+    20 => [ 79, 75, 78,  0,  0,  0],
+    21 => [ 76, 77,  0,  0,  0,  0],
+    22 => [ 80, 83, 84,  0,  0,  0],
+    23 => [ 81, 82,  0,  0,  0,  0],
+    24 => [ 85, 86, 89, 90,  0,  0],
+    25 => [ 87, 88,  0,  0,  0,  0],
+    26 => [ 91, 92,  0,  0,  0,  0],
+    27 => [ 95, 93, 94,  0,  0,  0],
+    28 => [ 97, 98, 99,100,101, 96],
+    30 => [102,103,104,105,  0,  0],
+    32 => [106,107,108,109,110,  0],
+    34 => [111,112,113,114,  0,  0],
+    36 => [116,117,118,119,120,121],
+    38 => [122,123,124,125,126,127],
+    40 => [127,128,129,130,131,132],
+    42 => [133,134,135,136,  0,  0],
+};
