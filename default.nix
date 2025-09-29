@@ -11,7 +11,7 @@ rustPlatform.buildRustPackage rec {
   ];
 
   checkPhase = "";
-  cargoHash = "sha256-aljNMSWxjcUbznEFyuECIWawXy9hfesETzS8XjNWYPo=";
+  cargoHash = "sha256-vYAmJWiIKASF2YH9XGQT/fFHzxmECUlqsIX9GLToA08=";
 
   meta = {
     description = "My custom OpenRGB Config";

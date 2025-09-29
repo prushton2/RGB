@@ -54,7 +54,7 @@ static KEYMAP: phf::Map<usize, [usize; 8]> = phf_map! {
 
 static SPEED: f64 = 0.25;
 static LEFT_TO_RIGHT: bool = true;
-static BLEND: f64 = 16.0; // lower = less blend, higher = more blend
+static BLEND: f64 = 8.0; // lower = less blend, higher = more blend
 static MODULO: f64 = 48.0; // interval between matching color states. No idea why mine is 48.
 
 #[tokio::main]
