@@ -4,12 +4,12 @@
   };
 
   outputs = { self, nixpkgs }@inputs: {
-    defaultPackage = let 
+    customrgb = let 
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; };
     in  
       pkgs.rustPlatform.buildRustPackage rec {
-        name = "custom-rgb-${version}";
+        name = "customrgb-${version}";
         version = "0.1.0";
         src = ./.;
 
