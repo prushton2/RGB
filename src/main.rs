@@ -11,77 +11,69 @@ Logitech G915 Wireless RGB Mechanical Gaming Keyboard
 */
 
 use phf::{phf_map};
+// use std::io::{self, Write};
 
-static KEYMAP: phf::Map<usize, [usize; 6]> = phf_map! {
-    0  => [19,20,21,22,23,24],
-    2  => [25,26,27,28,29,30,],
-    4  => [31,34,0,0,0,0],
-    5  => [32,33,0,0,0,0],
-    6  => [35,36,39,40,0,0],
-    7  => [37,38,0,0,0,0],
-    8  => [42,43,46,0,0,0],
-    9  => [44,45,0,0,0,0],
-    10 => [48,49,52,0,0,0],
-    11 => [50,51,0,0,0,0],
-    12 => [54,55,58,0,0,0],
-    13 => [56,57,0,0,0,0],
-    14 => [64,59,62,63,0,0],
-    15 => [60,61,0,0,0,0],
-    16 => [65,68,0,0,0,0],
-    17 => [69,66,67,0,0,0],
-    18 => [74,70,73,0,0,0],
-    19 => [71,72,0,0,0,0],
-    20 => [0,0,0,0,0,0],
-    21 => [0,0,0,0,0,0],
-    22 => [0,0,0,0,0,0],
-    23 => [0,0,0,0,0,0],
-    24 => [0,0,0,0,0,0],
-    25 => [0,0,0,0,0,0],
-    26 => [0,0,0,0,0,0],
-    27 => [0,0,0,0,0,0],
-    28 => [0,0,0,0,0,0],
-    30 => [0,0,0,0,0,0],
-    32 => [0,0,0,0,0,0],
-    34 => [0,0,0,0,0,0],
-    36 => [0,0,0,0,0,0],
-    38 => [0,0,0,0,0,0],
-    40 => [0,0,0,0,0,0],
-    42 => [0,0,0,0,0,0],
+// This stores each x position on the keyboard and all key ids at that position. 255 is none. 
+// 1 is roughly equal to half a key. Gaps between keys are ignored
+static KEYMAP: phf::Map<usize, [usize; 8]> = phf_map! {
+    0  => [ 19, 20, 21, 22, 23, 24,255,255],
+    2  => [ 25, 26, 27, 28, 29, 30,255,255],
+    4  => [ 31, 34,255,255,255,255,255,255],
+    5  => [ 32, 33,255,255,255,255,255,255],
+    6  => [ 35, 36, 39, 40,255,255,255,255],
+    7  => [ 37, 38,255,255,255,255,255,255],
+    8  => [ 42, 43, 46,255,255,255,255,255],
+    9  => [ 44, 45,255,255,255,255,255,255],
+    10 => [ 48, 49, 52,255,255,255,255,255],
+    11 => [ 50, 51,255,255,255,255,255,255],
+    12 => [ 54, 55, 58,255,255,255,255,255],
+    13 => [ 56, 57,255,255,255,255,255,255],
+    14 => [ 64, 59, 62, 63,255,255,255,255],
+    15 => [ 60, 61,255,255,255,255,255,255],
+    16 => [ 65, 68,255,255,255,255,255,255],
+    17 => [ 69, 66, 67,255,255,255,255,255],
+    18 => [ 74, 70, 73,255,255,255,255,255],
+    19 => [ 71, 72,255,255,255,255,255,255],
+    20 => [ 79, 75, 78,255,255,255,255,255],
+    21 => [ 76, 77,255,255,255,255,255,255],
+    22 => [ 80, 83, 84,255,255,255,255,255],
+    23 => [ 81, 82,255,255,255,255,255,255],
+    24 => [ 85, 86, 89, 90,255,255,255,255],
+    25 => [ 87, 88,255,255,255,255,255,255],
+    26 => [ 91, 92,255,255,255,255,255,255],
+    27 => [ 95, 93, 94,255,255,255,255,255],
+    28 => [ 97, 98, 99,100,101, 96,255,255],
+    30 => [102,103,104,105,255,255,255,255],
+    32 => [106,107,108,109,110,255,255,255],
+    34 => [111,112,113,114,255,255,255,255],
+    36 => [116,117,118,119,120,121,255,255],
+    38 => [122,123,124,125,126,127,255,255],
+    40 => [127,128,129,130,131,132,255,255],
+    42 => [133,134,135,136,255,255,255,255],
 };
+
+static SPEED: f64 = 0.25;
+static LEFT_TO_RIGHT: bool = true;
+static BLEND: f64 = 16.0; // lower = less blend, higher = more blend
+static MODULO: f64 = 48.0; // interval between matching color states. No idea why mine is 48.
 
 #[tokio::main]
 async fn main() -> OpenRgbResult<()> {
+
     // connect to default server at localhost
     let client = OpenRgbClient::connect().await?;
     let controllers = client.get_all_controllers().await?;
     controllers.init().await?;
 
-    // let keyboard_container: Controller;
-    let mut offset: f64 = 1.0;
-    // loop {
-    offset += 0.5;
-    println!("Offset: {}", offset);
-    draw_rainbow(&controllers, offset).await?;
-    tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
-    // }
-
-    Ok(())
+    let mut offset: f64 = 0.0;
+    loop {
+        offset = (offset+SPEED)%MODULO;
+        draw_rainbow(&controllers, if LEFT_TO_RIGHT {MODULO-offset} else {offset}, BLEND).await?;
+        tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+    }
 }
 
-async fn draw_rainbow(controllers: &ControllerGroup, _offset: f64) -> OpenRgbResult<()> {
-    for controller in controllers {
-        let mut cmd = controller.cmd();
-        if controller.name() != "Corsair K95 RGB PLATINUM XT" {
-            continue
-        }
-        for led in controller.led_iter() {
-            match cmd.set_led(led.id(), Color::new(255,255,255)) {
-                Ok(_) => {}
-                Err(t) => panic!("{}", t)
-            };
-        }
-        cmd.execute().await?;
-    }
+async fn draw_rainbow(controllers: &ControllerGroup, offset: f64, blend: f64) -> OpenRgbResult<()> {
 
     for controller in controllers {
         let mut cmd = controller.cmd();
@@ -93,9 +85,12 @@ async fn draw_rainbow(controllers: &ControllerGroup, _offset: f64) -> OpenRgbRes
         }
 
         for (key, leds) in KEYMAP.entries() {
-            let color = calculate_rainbow(((*key) as f64)/8.0);
+            let color = calculate_rainbow((*key as f64 + offset)/blend);
 
             for led in *leds {
+                if led == 255 {
+                    break;
+                }
                 // println!("{}: {}", led, color);
                 match cmd.set_led(led, color) {
                     Ok(_) => {}
@@ -105,19 +100,7 @@ async fn draw_rainbow(controllers: &ControllerGroup, _offset: f64) -> OpenRgbRes
 
         }
         
-        // for led in controller.led_iter() {
-
-        //     println!("{}: {}", led.id(), led.name());
-
-        //     match cmd.set_led(led.id(), CalculateRainbow((led.id()/8) as f64)) {
-        //         Ok(_) => {}
-        //         Err(t) => panic!("{}", t)
-        //     };
-        // }
         cmd.execute().await?;
-
-        // cmd.set_all_leds(Color::new(255, 0, 0)).await?;
-
     }
 
     Ok(())
@@ -125,8 +108,15 @@ async fn draw_rainbow(controllers: &ControllerGroup, _offset: f64) -> OpenRgbRes
 
 fn calculate_rainbow(full_offset: f64) -> Color {
     let offset = full_offset%3.0;
+    if offset <= 1.0 {
+        return Color::new(
+            (255.0*(-(offset    ).abs()+1.0)) as u8,
+            (255.0*(-(offset-1.0).abs()+1.0)) as u8,
+            (255.0*(-(offset-2.0).abs()+1.0)) as u8,
+        )
+    }
     return Color::new(
-        (255.0*(-(offset    ).abs()+1.0)) as u8,
+        (255.0*(-(offset-3.0).abs()+1.0)) as u8,
         (255.0*(-(offset-1.0).abs()+1.0)) as u8,
         (255.0*(-(offset-2.0).abs()+1.0)) as u8,
     )
