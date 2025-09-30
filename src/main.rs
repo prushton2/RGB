@@ -1,7 +1,10 @@
-// use std::f64::consts;
-use openrgb2::{OpenRgbResult, OpenRgbClient, Color, ControllerGroup};
+#[allow(non_snake_case)]
+use std::env;
+use std::fs;
+use openrgb2::{OpenRgbResult, OpenRgbClient, Color, Controller};
 use tokio;
-// use openrgb2::ControllerIndex;
+use phf::{phf_map};
+use serde::{Deserialize, Serialize};
 
 /*
 AMD Wraith Prism
@@ -10,10 +13,6 @@ Corsair K95 RGB PLATINUM XT
 Logitech G915 Wireless RGB Mechanical Gaming Keyboard
 */
 
-use phf::{phf_map};
-use std::env;
-use std::fs;
-// use std::io::{self, Write};
 
 // This stores each x position on the keyboard and all key ids at that position. 255 is none. 
 // 1 is roughly equal to half a key. Gaps between keys are ignored
@@ -49,20 +48,21 @@ static KEYMAP: phf::Map<usize, [usize; 8]> = phf_map! {
     32 => [106,107,108,109,110,255,255,255],
     34 => [111,112,113,114,255,255,255,255],
     36 => [116,117,118,119,120,121,255,255],
-    38 => [122,123,124,125,126,127,255,255],
+    38 => [122,123,124,125,126,255,255,255],
     40 => [127,128,129,130,131,132,255,255],
     42 => [133,134,135,136,255,255,255,255],
 };
 
+#[derive(Debug, Serialize, Deserialize)]
+struct Config {
+    speed: f64,
+    left_to_right: i64,
+    blend: f64,  // lower = less blend, higher = more blend
+    modulo: f64, // interval between matching color states. No idea why mine is 48.
+}
 
 #[tokio::main]
 async fn main() -> OpenRgbResult<()> {
-
-    let speed: f64;
-    let left_to_right: bool;
-    let blend: f64; // lower = less blend, higher = more blend
-    let modulo: f64; // interval between matching color states. No idea why mine is 48.
-
     let args: Vec<String> = env::args().collect();
     if args.len() < 2 {
         eprintln!("Usage: {} <file_path>", args[0]);
@@ -72,21 +72,8 @@ async fn main() -> OpenRgbResult<()> {
     let file_path = &args[1];
     let file_content = fs::read_to_string(file_path).expect("Failed to read the file");
 
-    let yaml_data: serde_yaml::Value = serde_yaml::from_str(&file_content)
-        .expect("Failed to parse the file content as YAML");
-
-    speed = yaml_data.get("SPEED")
-        .and_then(|v| v.as_f64())
-        .expect("Failed to retrieve or parse 'SPEED' from YAML");
-    left_to_right = yaml_data.get("LEFT_TO_RIGHT")
-        .and_then(|v| v.as_i64())
-        .expect("Failed to retrieve or parse 'LEFT_TO_RIGHT' from YAML") != 0;
-    blend = yaml_data.get("BLEND")
-        .and_then(|v| v.as_f64())
-        .expect("Failed to retrieve or parse 'BLEND' from YAML");
-    modulo = yaml_data.get("MODULO")
-        .and_then(|v| v.as_f64())
-        .expect("Failed to retrieve or parse 'MODULO' from YAML");
+    let config: Config = serde_yaml::from_str(&file_content)
+        .expect("Failed to deserialize the file content into Config struct");
 
     // connect to default server at localhost
     let client = OpenRgbClient::connect().await?;
@@ -95,42 +82,38 @@ async fn main() -> OpenRgbResult<()> {
 
     let mut offset: f64 = 0.0;
     loop {
-        offset = (offset+speed)%modulo;
-        draw_rainbow(&controllers, if left_to_right {modulo-offset} else {offset}, blend).await?;
-        tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+        offset = (offset+config.speed)%config.modulo;
+
+        for controller in &controllers {
+            match controller.name() {
+                "Corsair K95 RGB PLATINUM XT" => draw_rainbow(&controller, if config.left_to_right != 0 {config.modulo-offset} else {offset}, config.blend).await?,
+                _ => {}
+            }
+        }
+        tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
     }
 }
 
-async fn draw_rainbow(controllers: &ControllerGroup, offset: f64, blend: f64) -> OpenRgbResult<()> {
+async fn draw_rainbow(controller: &Controller, offset: f64, blend: f64) -> OpenRgbResult<()> {
 
-    for controller in controllers {
-        let mut cmd = controller.cmd();
-        
-        // println!("{}", controller.name());
+    let mut cmd = controller.cmd();
 
-        if controller.name() != "Corsair K95 RGB PLATINUM XT" {
-            continue
-        }
+    for (key, leds) in KEYMAP.entries() {
+        let color = calculate_rainbow((*key as f64 + offset)/blend);
 
-        for (key, leds) in KEYMAP.entries() {
-            let color = calculate_rainbow((*key as f64 + offset)/blend);
-
-            for led in *leds {
-                if led == 255 {
-                    break;
-                }
-                // println!("{}: {}", led, color);
-                match cmd.set_led(led, color) {
-                    Ok(_) => {}
-                    Err(t) => panic!("{}", t)
-                };
+        for led in *leds {
+            if led == 255 {
+                break;
             }
 
+            match cmd.set_led(led, color) {
+                Ok(_) => {}
+                Err(t) => panic!("{}", t)
+            };
         }
-        
-        cmd.execute().await?;
     }
 
+    cmd.execute().await?;
     Ok(())
 }
 

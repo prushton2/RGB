@@ -1,4 +1,4 @@
-SPEED: 1.0
-LEFT_TO_RIGHT: 1
-BLEND: 8.0
-MODULO: 48.0
+speed: 0.5
+left_to_right: 1
+blend: 8.0
+modulo: 48.0
