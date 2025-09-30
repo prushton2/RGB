@@ -3,10 +3,10 @@
 let
   cfg = config.services.customrgb;
   configFile = pkgs.writeText "customrgb-config.yaml" ''
-    SPEED: ${cfg.keyboard.speed}
-    LEFT_TO_RIGHT: ${toString cfg.keyboard.left_to_right}
-    BLEND: ${cfg.keyboard.blend}
-    MODULO: ${cfg.keyboard.modulo}
+    speed: ${cfg.keyboard.speed}
+    left_to_right: ${toString cfg.keyboard.left_to_right}
+    blend: ${cfg.keyboard.blend}
+    modulo: ${cfg.keyboard.modulo}
   '';
 in
 {
