@@ -1,7 +1,8 @@
-{ config, lib, pkgs, ... }:
+{ options, config, lib, pkgs, stdenv, ... }:
 
 let
   cfg = config.services.customrgb;
+  customrgb = pkgs.callPackage ./default.nix {};
   configFile = pkgs.writeText "customrgb-config.yaml" ''
     speed: ${cfg.keyboard.speed}
     left_to_right: ${toString cfg.keyboard.left_to_right}
@@ -15,7 +16,7 @@ in
 
     package = lib.mkOption {
       type = lib.types.package;
-      default = pkgs.customrgb;
+      default = customrgb;
       description = "Package";
     };
 

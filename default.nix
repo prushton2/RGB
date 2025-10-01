@@ -1,13 +1,15 @@
-{ lib, rustPlatform, openssl, pkg-config}:
+{ pkgs, ... }: #lib, openssl, pkg-config, rustPlatform, ... }:
 
-rustPlatform.buildRustPackage rec {
+pkgs.rustPlatform.buildRustPackage rec {
   name = "customrgb-${version}";
   version = "0.1.0";
   src = ./.;
 
+  nativeBuildInputs = [ 
+    pkgs.pkg-config
+  ];
   buildInputs = [ 
-    openssl
-    pkg-config
+    pkgs.openssl
   ];
 
   checkPhase = "";
@@ -16,7 +18,7 @@ rustPlatform.buildRustPackage rec {
   meta = {
     description = "My custom OpenRGB Config";
     homepage = https://github.com/prushton2/openrgb;
-    license = lib.licenses.mit;
-    platforms = lib.platforms.linux;
+    license = pkgs.lib.licenses.mit;
+    platforms = pkgs.lib.platforms.linux;
   };
 }
