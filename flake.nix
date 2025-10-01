@@ -7,14 +7,16 @@
     };
   };
 
-  outputs = { self, nixpkgs, flake-compat }: {
-    packages.x86_64-linux.customrgb = (
-      import nixpkgs {
-        currentSystem = "x86_64-linux";
-        localSystem = "x86_64-linux";
-      }).pkgs.callPackage ./default.nix { };
-    packages.x86_64-linux.default = self.packages.x86_64-linux.customrgb;
+  outputs = { self, nixpkgs, ... }: {
+    packages.x86_64-linux = 
+      let
+        system = "x86_64-linux";
+        pkgs = import nixpkgs { inherit system; };
+      in
+      {
+        default = import ./default.nix { inherit pkgs; };
+      };
 
-    nixosModules.default = { config, pkgs, ... }: import ./module.nix { inherit pkgs; };
+    nixosModules.default = import ./module.nix;
   };
 }
