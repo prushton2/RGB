@@ -83,8 +83,15 @@ async fn main() -> OpenRgbResult<()> {
         .expect("Failed to deserialize the file content into Config struct");
 
     // connect to default server at localhost
-    let client = OpenRgbClient::connect().await?;
-    let controllers = client.get_all_controllers().await?;
+    let mut client = OpenRgbClient::connect().await;
+
+    while client.is_err() {
+        println!("Connection failed, Reconnecting...");
+        client = OpenRgbClient::connect().await;
+        tokio::time::sleep(tokio::time::Duration::from_millis(5000)).await;
+    }
+    
+    let controllers = client.expect("Connection established, controllers couldnt be fetched").get_all_controllers().await?;
     controllers.init().await?;
 
     let mut offset: f64 = 0.0;
@@ -99,6 +106,7 @@ async fn main() -> OpenRgbResult<()> {
         }
         tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
     }
+    // Ok(())
 }
 
 async fn draw_rainbow_on_keyboard(controller: &Controller, offset: f64, blend: f64) -> OpenRgbResult<()> {
