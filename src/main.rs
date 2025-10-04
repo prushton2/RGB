@@ -61,12 +61,19 @@ static KEYMAP: phf::Map<usize, [usize; 8]> = phf_map! {
 };
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Config {
+struct DeviceConfig {
     speed: f64,
     left_to_right: i64,
     blend: f64,  // lower = less blend, higher = more blend
     modulo: f64, // interval between matching color states. No idea why mine is 48.
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Config {
+    keyboard: DeviceConfig,
+    cooler: DeviceConfig,
+}
+
 
 #[tokio::main]
 async fn main() -> OpenRgbResult<()> {
@@ -94,13 +101,33 @@ async fn main() -> OpenRgbResult<()> {
     let controllers = client.expect("Connection established, controllers couldnt be fetched").get_all_controllers().await?;
     controllers.init().await?;
 
-    let mut offset: f64 = 0.0;
+    let mut keyboard_offset: f64 = 0.0;
+    let mut cooler_offset: f64 = 0.0;
+
     loop {
-        offset = (offset+config.speed)%config.modulo;
+        keyboard_offset = (keyboard_offset+config.keyboard.speed)%config.keyboard.modulo;
+        cooler_offset = (cooler_offset+config.cooler.speed)%config.cooler.modulo;
+
+        // let mut input = String::new();
+        // if let Ok(_) = std::io::stdin().read_line(&mut input) {
+            
+        //     cooler_offset = input.trim().parse::<f64>().unwrap_or(cooler_offset);
+        // }
 
         for controller in &controllers {
             match controller.name() {
-                "Corsair K95 RGB PLATINUM XT" => draw_rainbow_on_keyboard(&controller, if config.left_to_right != 0 {config.modulo-offset} else {offset}, config.blend).await?,
+                "Corsair K95 RGB PLATINUM XT" => draw_rainbow_on_keyboard(
+                    &controller,
+                    if config.keyboard.left_to_right != 0 {config.keyboard.modulo-keyboard_offset} else {keyboard_offset},
+                    config.keyboard.blend
+                ).await?,
+
+                "AMD Wraith Prism" => draw_rainbow_on_cooler(
+                    &controller,
+                    if config.cooler.left_to_right != 0 {config.cooler.modulo-cooler_offset} else {cooler_offset},
+                    config.cooler.blend
+                ).await?,
+
                 _ => {}
             }
         }
@@ -109,8 +136,20 @@ async fn main() -> OpenRgbResult<()> {
     // Ok(())
 }
 
-async fn draw_rainbow_on_keyboard(controller: &Controller, offset: f64, blend: f64) -> OpenRgbResult<()> {
+async fn draw_rainbow_on_cooler(controller: &Controller, offset: f64, blend: f64) -> OpenRgbResult<()> {
+    let mut cmd = controller.cmd();
 
+    cmd.set_led(0,Color::new(255,0,0))?;
+    cmd.set_led(1,Color::new(255,0,0))?;
+
+    for led in 2..controller.num_leds() {
+        cmd.set_led(led, calculate_rainbow((led as f64 + offset)/blend))?;
+    }
+    cmd.execute().await?;
+    Ok(())
+}
+
+async fn draw_rainbow_on_keyboard(controller: &Controller, offset: f64, blend: f64) -> OpenRgbResult<()> {
     let mut cmd = controller.cmd();
 
     for (key, leds) in KEYMAP.entries() {
